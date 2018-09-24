@@ -18,7 +18,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="@dimen/activity_margin"
-    tools:context="theofrancisco.pets.EditorActivity">
+    tools:context="me.theofrancisco.android.pets.EditorActivity">
 
     <!-- Overview category -->
     <LinearLayout
@@ -36,7 +36,8 @@
             android:layout_height="wrap_content"
             android:layout_width="0dp"
             android:layout_weight="2"
-            android:paddingLeft="4dp"
+            android:paddingEnd="0dp"
+            android:paddingStart="4dp"
             android:orientation="vertical">
 
             <!-- Name field -->
@@ -76,10 +77,11 @@
 
             <!-- Gender drop-down spinner -->
             <Spinner
-                android:id="@+id/spinner_gender"
+                android:id="@+id/spinnerGender"
                 android:layout_height="48dp"
                 android:layout_width="wrap_content"
-                android:paddingRight="16dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="8dp"
                 android:spinnerMode="dropdown"/>
         </LinearLayout>
     </LinearLayout>
@@ -101,7 +103,8 @@
             android:layout_height="wrap_content"
             android:layout_width="0dp"
             android:layout_weight="2"
-            android:paddingLeft="4dp">
+            android:paddingEnd="4dp"
+            android:paddingStart="4dp">
 
             <!-- Weight field -->
             <EditText

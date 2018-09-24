@@ -10,7 +10,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<manifest package="com.example.android.pets"
+<manifest package="me.theofrancisco.android.pets"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="theofrancisco.pets.EditorActivity"
+            android:name="me.theofrancisco.android.pets.EditorActivity"
             android:label="@string/editor_activity_title_new_pet"
             android:theme="@style/EditorTheme"
             android:parentActivityName="me.theofrancisco.android.pets.CatalogActivity" >

@@ -24,9 +24,11 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class PetDbHelper extends SQLiteOpenHelper {
 
-    public static final String LOG_TAG = PetDbHelper.class.getSimpleName();
+    public static final String LOG_TAG = "myApp";
 
-    /** Name of the database file */
+    /**
+     * Name of the database file
+     */
     private static final String DATABASE_NAME = "shelter.db";
 
     /**
@@ -49,7 +51,7 @@ public class PetDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create a String that contains the SQL statement to create the pets table
-        String SQL_CREATE_PETS_TABLE =  "CREATE TABLE " + PetContract.PetEntry.TABLE_NAME + " ("
+        String SQL_CREATE_PETS_TABLE = "CREATE TABLE " + PetContract.PetEntry.TABLE_NAME + " ("
                 + PetContract.PetEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + PetContract.PetEntry.COLUMN_PET_NAME + " TEXT NOT NULL, "
                 + PetContract.PetEntry.COLUMN_PET_BREED + " TEXT, "
