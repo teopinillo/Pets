@@ -20,7 +20,9 @@ import me.theofrancisco.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
-    /** Database helper that will provide us access to the database */
+    /**
+     * Database helper that will provide us access to the database
+     */
     private PetDbHelper mDbHelper;
 
     @Override
@@ -54,22 +56,71 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+        Cursor c = null;
+        String records = "reading db...";
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            // Create and/or open a database to read from it
+            SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+            //Projection
+            String[] projection = {
+                    PetEntry._ID,
+                    PetEntry.COLUMN_PET_NAME,
+                    PetEntry.COLUMN_PET_BREED,
+                    PetEntry.COLUMN_PET_GENDER,
+                    PetEntry.COLUMN_PET_WEIGHT
+            };
+            //String selection = PetEntry.COLUMN_PET_GENDER + "=?";
+            //String selectionArgs = new String[]{PetEntry.GENDER_FEMALE};
+            c = db.query(PetEntry.TABLE_NAME,
+                    projection,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
+            records = "cursor count: " + c.getCount() + "\n";
+            if (c.getCount() > 0) {
+                c.moveToFirst();
+                for (int i = 0; i < c.getCount(); i++) {
+                    int id = c.getInt(0);
+                    records = records.concat(Integer.toString(id)) + " ";
+                    String name = c.getString(1);
+                    records = records.concat(name) + " ";
+                    String breed = c.getString(2);
+                    records = records.concat(breed) + " ";
+                    int codGender = c.getInt(3);
+                    String gender;
+                    switch (codGender) {
+                        case 1: {
+                            gender = " M ";
+                            break;
+                        }
+                        case 2:
+                            gender = " F ";
+                        default:
+                            gender = " U ";
+                    }
+                    int weight = c.getInt(4);
+                    records = records.concat(name + " " + breed + gender + weight + "\n");
+                    c.moveToNext();
+                }
+            } else {
+                records = "no records found!";
+            }
+
+        } catch (Exception e) {
+            records = records.concat("Error: ").concat(e.getMessage());
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
-            cursor.close();
+            if (c != null) c.close();
         }
+        // Display the number of rows in the Cursor (which reflects the number of rows in the
+        // pets table in the database).
+        TextView displayView = findViewById(R.id.text_view_pet);
+        //displayView.setText("Number of rows in pets database table: " + c.getCount());
+        displayView.setText(records);
     }
 
     /**
