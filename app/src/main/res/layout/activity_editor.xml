@@ -77,7 +77,7 @@
 
             <!-- Gender drop-down spinner -->
             <Spinner
-                android:id="@+id/spinnerGender"
+                android:id="@+id/spinner_gender"
                 android:layout_height="48dp"
                 android:layout_width="wrap_content"
                 android:paddingEnd="16dp"
