@@ -64,4 +64,17 @@
 
     <string name="editor_insert_pet_failed">Editor Insert Pet Failed</string>
     <string name="editor_insert_pet_successful">Editor Insert Pet Successfully</string>
+
+    <!-- Title text for the empty view, which describes the empty dog house image [CHAR LIMIT=50] -->
+    <string name="empty_view_title_text">It\'s a bit lonely here...</string>
+    <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
+    <string name="empty_view_subtitle_text">Get started by adding a pet</string>
+    <string name="editor_activity_title_new_item">Add Pet</string>
+    <string name="editor_activity_title_edit_item">Edit Pet</string>
+    <string name="failed_to_insert_row">Failed to Insert Pet</string>
+    <string name="uri_is_null">Error Inserting: Uri is null.</string>
+    <string name="editor_update_item_failed">Update Item Failed.</string>
+    <string name="editor_update_item_successful">Pet Update Sucessful</string>
+
+
 </resources>
