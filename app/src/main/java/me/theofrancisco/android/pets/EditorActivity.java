@@ -133,6 +133,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mWeightEditText.setOnKeyListener(mKeyListener);
         mGenderSpinner.setOnKeyListener(mKeyListener);
 
+        //See comments on the method onSaveInstanceState
+        if(savedInstanceState != null){
+            editDataHasChanged = savedInstanceState.getBoolean("editDataHasChanged");
+        }
 
         setupSpinner();
         Log.i("MyApp", "[EditorActivity.onCreate] finish");
@@ -462,6 +466,21 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
     }
+
+    //
+    //What if User Touch any Edit Field, so 'OnTouchListener' get Triggered and 'mPetHasChanged'
+    //value will change to 'true' and then if user Rotate the screen, so Editor activity will
+    // again created with Default value of 'mPetHasChanged' value to 'false', so it's not good.
+    //SOLUTION:
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("editDataHasChanged", editDataHasChanged);
+    }
+    //in onCreate:
+    //  if(savedInstanceState != null){
+    //               mPetHasChanged = savedInstanceState.getBoolean("mPetHasChanged");
+    //
 
     //Helpful links:
 
