@@ -23,7 +23,7 @@ public class PetCursorAdapter extends CursorAdapter {
      * @param context The context
      * @param c       The cursor from which to get the data.
      */
-    public PetCursorAdapter(Context context, Cursor c) {
+    PetCursorAdapter(Context context, Cursor c) {
         super(context, c, 0 /* flags */);
     }
     /**

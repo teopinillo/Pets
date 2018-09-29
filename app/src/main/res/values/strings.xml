@@ -75,6 +75,9 @@
     <string name="uri_is_null">Error Inserting: Uri is null.</string>
     <string name="editor_update_item_failed">Update Item Failed.</string>
     <string name="editor_update_item_successful">Pet Update Sucessful</string>
+    <string name="unsaved_changes_dialog_msg">Discard your changes and quit editing?</string>
+    <string name="discard">Discard</string>
+    <string name="keep_editing">Keep Editing</string>
 
 
 </resources>

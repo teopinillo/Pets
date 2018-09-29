@@ -15,9 +15,11 @@
  */
 package me.theofrancisco.android.pets;
 
+import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -27,8 +29,10 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -43,25 +47,40 @@ import static me.theofrancisco.android.pets.data.PetProvider.LOG_TAG;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    /** Content URI for the existing pet (null if it's a new pet) */
+    /**
+     * Content URI for the existing pet (null if it's a new pet)
+     */
     private Uri mCurrentPetUri;
 
-    /** Identifier for the pet data loader */
+    /**
+     * Identifier for the pet data loader
+     */
     private static final int EXISTING_PET_LOADER = 0;
 
-    /** EditText field to enter the pet's name */
+    /**
+     * EditText field to enter the pet's name
+     */
     private EditText mNameEditText;
 
-    /** EditText field to enter the pet's breed */
+    /**
+     * EditText field to enter the pet's breed
+     */
     private EditText mBreedEditText;
 
-    /** EditText field to enter the pet's weight */
+    /**
+     * EditText field to enter the pet's weight
+     */
     private EditText mWeightEditText;
 
-    /** EditText field to enter the pet's gender */
+    /**
+     * EditText field to enter the pet's gender
+     */
     private Spinner mGenderSpinner;
+
+    //flag if the user changes any data
+    private boolean editDataHasChanged = false;
 
     /**
      * Gender of the pet. The possible valid values are in the PetContract.java file:
@@ -74,7 +93,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
-        Log.i("MyApp","[EditorActivity.onCreate] start");
+        Log.i("MyApp", "[EditorActivity.onCreate] start");
 
         //Use getIntent() and getData() to get the associated URI
 
@@ -87,9 +106,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mCurrentPetUri = intent.getData();
         //if the intent DOES NOT contain a pet URI, then we know that we are
         //creating a new pet
-        if(mCurrentPetUri==null){
+        if (mCurrentPetUri == null) {
             setTitle(getString(R.string.editor_activity_title_new_item));
-        }else{
+        } else {
             //Otherwise this is an existing pet, so change app bar to say "Edit Pet"
             setTitle(getString(R.string.editor_activity_title_edit_item));
 
@@ -104,8 +123,19 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mWeightEditText = findViewById(R.id.edit_pet_weight);
         mGenderSpinner = findViewById(R.id.spinner_gender);
 
+        mNameEditText.setOnTouchListener(mTouchListener);
+        mBreedEditText.setOnTouchListener(mTouchListener);
+        mWeightEditText.setOnTouchListener(mTouchListener);
+        mGenderSpinner.setOnTouchListener(mTouchListener);
+
+        mNameEditText.setOnKeyListener(mKeyListener);
+        mBreedEditText.setOnKeyListener(mKeyListener);
+        mWeightEditText.setOnKeyListener(mKeyListener);
+        mGenderSpinner.setOnKeyListener(mKeyListener);
+
+
         setupSpinner();
-        Log.i("MyApp","[EditorActivity.onCreate] finish");
+        Log.i("MyApp", "[EditorActivity.onCreate] finish");
     }
 
     /**
@@ -153,10 +183,26 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private void insertPet() {
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
+
+
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
-        int weight = Integer.parseInt(weightString);
+        int weight = 0;
+
+        //if its a new item, then check that all fields ares et.
+        if (mCurrentPetUri == null &&
+                TextUtils.isEmpty(nameString) && TextUtils.isEmpty(breedString) &&
+                TextUtils.isEmpty(weightString) && mGender == PetEntry.GENDER_UNKNOWN) {
+            return;
+        }
+
+        // If the weight is not provided by the user, don't try to parse the string into an
+        // integer value. Use 0 by default.
+
+        if (!TextUtils.isEmpty(weightString)) {
+            weight = Integer.parseInt(weightString);
+        }
 
         // Create a ContentValues object where column names are the keys,
         // and pet attributes from the editor are the values.
@@ -166,7 +212,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.COLUMN_PET_GENDER, mGender);
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
-        if (mCurrentPetUri==null){
+        if (mCurrentPetUri == null) {
             saveItem(values);     //new pet
         }
         // Otherwise this is an EXISTING item, so update the pet with content URI: currentItemUri
@@ -186,7 +232,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
     }
 
-    private void saveItem(ContentValues values){
+    private void saveItem(ContentValues values) {
         Uri uri = null;
         try {
             // Insert a new row in the database, returning the content uri of that new row.
@@ -234,10 +280,30 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 // Do nothing for now
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
-            case android.R.id.home:
-                // Navigate back to parent activity (CatalogActivity)
-                NavUtils.navigateUpFromSameTask(this);
+            case android.R.id.home: {
+                // If the pet hasn't changed, continue with navigating up to parent activity
+                // which is the {@link CatalogActivity}.
+                if (!editDataHasChanged) {
+                    NavUtils.navigateUpFromSameTask(EditorActivity.this);
+                    return true;
+                }
+
+                // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+                // Create a click listener to handle the user confirming that
+                // changes should be discarded.
+                DialogInterface.OnClickListener discardButtonClickListener =
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                // User clicked "Discard" button, navigate to parent activity.
+                                NavUtils.navigateUpFromSameTask(EditorActivity.this);
+                            }
+                        };
+
+                // Show a dialog that notifies the user they have unsaved changes
+                showUnsavedChangesDialog(discardButtonClickListener);
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -245,7 +311,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     //------------------implements LoaderManager.LoaderCallbacks<Cursor>--------------------
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.i("MyApp","[EditorActivity.onCreateLoader] start");
+        Log.i("MyApp", "[EditorActivity.onCreateLoader] start");
         // Since the editor shows all pet attributes, define a projection that contains
         // all columns from the pet table
         String[] projection = {
@@ -253,24 +319,24 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 PetEntry.COLUMN_PET_NAME,
                 PetEntry.COLUMN_PET_BREED,
                 PetEntry.COLUMN_PET_GENDER,
-                PetEntry.COLUMN_PET_WEIGHT };
+                PetEntry.COLUMN_PET_WEIGHT};
 
-        Loader<Cursor> cLoader=
-        // This loader will execute the ContentProvider's query method on a background thread
-         new CursorLoader(this,   // Parent activity context
-                mCurrentPetUri,         // Query the content URI for the current pet
-                projection,             // Columns to include in the resulting Cursor
-                null,                   // No selection clause
-                null,                   // No selection arguments
-                null);                  // Default sort order
+        Loader<Cursor> cLoader =
+                // This loader will execute the ContentProvider's query method on a background thread
+                new CursorLoader(this,   // Parent activity context
+                        mCurrentPetUri,         // Query the content URI for the current pet
+                        projection,             // Columns to include in the resulting Cursor
+                        null,                   // No selection clause
+                        null,                   // No selection arguments
+                        null);                  // Default sort order
 
-        Log.i("MyApp","[EditorActivity.onCreateLoader] end.");
+        Log.i("MyApp", "[EditorActivity.onCreateLoader] end.");
         return cLoader;
     }
 
     @Override
     public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor cursor) {
-        Log.i("MyApp","[EditorActivity.onLoadFinished] start");
+        Log.i("MyApp", "[EditorActivity.onLoadFinished] start");
         // Bail early if the cursor is null or there is less than 1 row in the cursor
         if (cursor == null || cursor.getCount() < 1) {
             return;
@@ -311,7 +377,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     break;
             }
         }
-        Log.i("MyApp","[EditorActivity.onLoadFinished] end");
+        Log.i("MyApp", "[EditorActivity.onLoadFinished] end");
     }
 
     @Override
@@ -322,4 +388,88 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mWeightEditText.setText("");
         mGenderSpinner.setSelection(0); // Select "Unknown" gender
     }
+
+    // OnTouchListener that listens for any user touches on a View, implying that they are modifying
+    // the view, and we change the mPetHasChanged boolean to true.
+
+    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            editDataHasChanged = true;
+            return false;
+        }
+    };
+
+    //I found a test case where the dialog box was not appearing when the user added details for a new pet but then clicking the back button before saving the details
+    //from {@link https://github.com/udacity/ud845-Pets/commit/bea7d9080f06d447892c634f6271cb83eef9762b
+    private View.OnKeyListener mKeyListener = new View.OnKeyListener(){
+        @Override public boolean onKey(View v, int keyCode, KeyEvent event){
+            editDataHasChanged = true; return false; }
+    };
+
+    //This code makes a AlertDialog using the AlertDialogBuilder. The method accepts a
+    // OnClickListener for the discard button. We do this because the behavior for clicking
+    // back or up is a little bit different.
+    //This method will create a dialog if the user exit the activity without saving
+    private void showUnsavedChangesDialog(
+            DialogInterface.OnClickListener discardButtonClickListener) {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.unsaved_changes_dialog_msg);
+        builder.setPositiveButton(R.string.discard, discardButtonClickListener);
+        builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // User clicked the "Keep editing" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+
+    //Hook up the back button
+    //Here is the code for the back button. You need to override the activity's normal
+    // “back button”. If the pet has changed, you make a discarded click listener that closes
+    // the current activity.
+    // Then you pass this listener to the showUnsavedChangesDialog method you just created.
+    @Override
+    public void onBackPressed() {
+        // If the pet hasn't changed, continue with handling back button press
+        if (!editDataHasChanged) {
+            super.onBackPressed();
+            return;
+        }
+
+        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+        // Create a click listener to handle the user confirming that changes should be discarded.
+        DialogInterface.OnClickListener discardButtonClickListener =
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // User clicked "Discard" button, close the current activity.
+                        finish();
+                    }
+                };
+
+        // Show dialog that there are unsaved changes
+        showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
+    //Helpful links:
+
+    //To add behavior to when the back button is clicked, see this StackOverflow post.
+    //@link https://stackoverflow.com/questions/18337536/android-overriding-onbackpressed
+    //To add behavior when the “Up” button is clicked, see this article.
+    //@link https://developer.android.com/training/implementing-navigation/ancestral?utm_source=udacity&utm_medium=course&utm_campaign=android_basics#NavigateUp
+    // You’ll need to add code to the case when the android.R.id.home button is clicked.
+    //@link https://developer.android.com/guide/topics/ui/dialogs?utm_source=udacity&utm_medium=course&utm_campaign=android_basics#AlertDialog
+
 }

@@ -18,7 +18,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="@dimen/activity_margin"
-    tools:context="me.theofrancisco.android.pets.EditorActivity">
+    tools:context="me.theofrancisco.android.pets.EditorActivity"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true">
 
     <!-- Overview category -->
     <LinearLayout

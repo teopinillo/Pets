@@ -23,7 +23,7 @@ import me.theofrancisco.android.pets.data.PetContract.PetEntry;
 //https://github.com/udacity/ud845-Pets/blob/feca5f24606aa1711362ff1d65ab85ffc94688ae/app/src/main/java/com/example/android/pets/CatalogActivity.java
 
 public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    private Cursor cursor;
+
     //Constant that will identified my loader. Could be any value.
     private static final int PET_LOADER = 1900;
     private PetCursorAdapter adapter;
@@ -44,7 +44,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         });
 
         //Find the ListView which will populated with the data
-        ListView listView = (ListView) findViewById(R.id.list);
+        ListView listView = findViewById(R.id.list);
         //Find and ser empty view on the ListView, so that it only shows when the
         //list has 0 items.
         View emptyView = findViewById(R.id.empty_view);
@@ -69,7 +69,6 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 //"content://me.theofrancisco.android.books/books/2"
                 //if the item with ID 2 was clicked on
                 Uri currentItemUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);
-
 
                 //set the URI on the data field of the intent
                 intent.setData(currentItemUri);
@@ -104,7 +103,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
         // into the pets database table.
         // Receive the new content URI that will allow us to access Toto's data in the future.
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
     @Override
